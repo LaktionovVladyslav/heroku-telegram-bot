@@ -1,11 +1,20 @@
-# List of required packages (Dependencies)
-redis
-
-# If you need to specify a version
+asn1crypto==0.24.0
+certifi==2019.3.9
+cffi==1.12.3
+chardet==3.0.4
+Click==7.0
+cryptography==2.7
+Flask==1.0.3
+future==0.17.1
+idna==2.5
+itsdangerous==1.1.0
+Jinja2==2.10.1
+MarkupSafe==1.1.1
+pycparser==2.19
+pyTelegramBotAPI==2.3.2
+python-telegram-bot==11.1.0
+redis==3.2.1
 requests==2.16.5
-
-# Or you need not a pip package, @'...' specifies git branch
-git+https://github.com/Kylmakalle/pyTelegramBotAPI.git@feature-BotAPIV3
-
-# Or you have .zip library
-https://site.org/files/package.zip
+six==1.12.0
+urllib3==1.21.1
+Werkzeug==0.15.4
