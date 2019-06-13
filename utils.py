@@ -37,7 +37,6 @@ def get_rank(rank):
 
 
 def get_score(**kwargs):
-    print(kwargs)
     return ((kwargs['stat'] * 9 / 7.5) + (kwargs['stat_of_map'] * 7 / 300) + (kwargs['count_of_won'] * 4)) * kwargs[
         'world_rating']
 
@@ -57,7 +56,6 @@ class GameAnalyser:
 
     def get_teams_stats_of_map(self, i):
         stats_of_maps = self.get_stats_of_map()
-        print(stats_of_maps)
         return sum([int(stats_of_maps[j][:-1]) if stats_of_maps[j] != '-' else 35 for j in range(i, 6, 2)])
 
     def get_stats_of_map(self):
@@ -85,7 +83,6 @@ class GameAnalyser:
         return team_kofs[i]
 
     def get_team_info(self):
-        print(self.url_to_math)
         info = dict(main_info={}, teams=[{}, {}])
         start_time = self.game_soup.find(class_='time').text
         info['main_info']['start_time'] = start_time
@@ -129,7 +126,6 @@ class GameAnalyser:
         else:
             score = float(game_info['teams'][0]['score']) - float(game_info['teams'][1]['score'])
             result_of_game = 0
-        print(score)
         score_in_percent = get_score_in_percent(score=score)
         return dict(
             first_team=first_team,
@@ -175,7 +171,6 @@ class ChanelAdmin:
         self.parser = GamesParser()
 
     def send_game(self, link_to_match):
-        print(link_to_match)
         game_analyser = GameAnalyser(url_to_math=link_to_match)
         game_info = game_analyser.game_analyser()
         text = "WINNER: {winner}\n{first_team} 🆚 {second_team} ➡\n️Время начала: {start_time}" \
