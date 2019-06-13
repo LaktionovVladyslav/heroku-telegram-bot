@@ -21,7 +21,7 @@ admin = ChanelAdmin()
 
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def echo_message(message):
-    user_id = message.user_id
+    user_id = message.chat.id
     user = session.query(User).filter_by(user_id=user_id)
     session.commit()
     if bool(len(user)):
