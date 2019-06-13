@@ -79,8 +79,8 @@ class GameAnalyser:
             return 'Не известно'
         for link in res.findAll('a'):
             if link.text not in ['-', '']:
-                team_kofs.append(link.text)
-        return team_kofs[i] or "??"
+                team_kofs.append(link.text or "??")
+        return team_kofs[i]
 
     def get_team_info(self):
         info = dict(main_info={}, teams=[{}, {}])
