@@ -3,7 +3,6 @@ from datetime import datetime
 
 import pytz
 import requests
-import telegram
 from bs4 import BeautifulSoup
 
 
