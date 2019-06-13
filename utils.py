@@ -131,7 +131,6 @@ class GameAnalyser:
             result_of_game = 0
         print(score)
         score_in_percent = get_score_in_percent(score=score)
-        score_in_percent = score_in_percent if score_in_percent < 100 else 100
         return dict(
             first_team=first_team,
             second_team=second_team,
