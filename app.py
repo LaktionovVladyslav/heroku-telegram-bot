@@ -5,6 +5,7 @@ from flask import Flask, request
 
 import telebot
 
+from connector import User, session
 from utils import ChanelAdmin
 
 TOKEN = "844180371:AAGzN2Ls-3tuseaN9h_R22l6FAL8ZqPav2I"
@@ -20,6 +21,15 @@ admin = ChanelAdmin()
 
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def echo_message(message):
+    user_id = message.user.user_id
+    user = session.query(User).filter_by(user_id=user_id)
+    session.commit()
+    if bool(len(user)):
+        user.first().count += 1
+    else:
+        user = User(user_id=user_id)
+        session.add(user)
+    session.commit()
     text = message.text
     if re.match(regex, text):
         text = admin.send_game(link_to_match=text)
