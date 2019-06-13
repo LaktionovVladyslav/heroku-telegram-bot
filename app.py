@@ -22,10 +22,10 @@ admin = ChanelAdmin()
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def echo_message(message):
     user_id = message.chat.id
-    user = session.query(User).filter_by(user_id=user_id)
+    user = session.query(User).filter_by(user_id=user_id).all()
     session.commit()
     if bool(len(user)):
-        user.first().count += 1
+        user[0].count += 1
     else:
         user = User(user_id=user_id)
         session.add(user)
