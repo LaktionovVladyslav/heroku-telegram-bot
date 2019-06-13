@@ -25,7 +25,7 @@ def echo_message(message):
     user = session.query(User).filter_by(user_id=user_id).all()
     session.commit()
     if bool(len(user)):
-        user[0].count += 1
+        user[0].counts += 1
     else:
         user = User(user_id=user_id)
         session.add(user)
