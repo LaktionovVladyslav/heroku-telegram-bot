@@ -1,45 +1,32 @@
-from flask import Flask
-from flask import render_template, request
-import logging
-import telegram
+import os
+import re
 
-HOST = "https://robobetsbot.herokuapp.com/"
+from telegram.ext import Updater
+from utils import ChanelAdmin
 
-app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-global bot
-bot = telegram.Bot(token='844180371:AAGzN2Ls-3tuseaN9h_R22l6FAL8ZqPav2I')
-botName = "RobobetsBot"  # Without @
-
-
-@app.route("/", methods=["POST", "GET"])
-def setWebhook():
-    if request.method == "GET":
-        logging.info("Hello, Telegram!")
-        return "OK, Telegram Bot!"
+TOKEN = "TOKEN"
+PORT = int(os.environ.get('PORT', '8443'))
+updater = Updater(TOKEN)
+dispatcher = updater.dispatcher
+regex = re.compile(
+    r'^https://'
+    r'www\.hltv\.org/matches'
+    r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+admin = ChanelAdmin()
 
 
-@app.route("/verify", methods=["POST"])
-def verification():
-    if request.method == "POST":
-        update = telegram.Update.de_json(request.get_json(force=True), bot)
-        if update is None:
-            return "Show me your TOKEN please!"
-        logging.info("Calling {}".format(update.message))
-        handle_message(update.message)
-        return "ok"
-
-
-def handle_message(msg):
-    text = msg.text
-    bot.sendMessage(chat_id=msg.chat.id, text=text)
-
-
-if __name__ == "__main__":
-    s = bot.setWebhook("{}/verify".format(HOST))
-    if s:
-        logging.info("{} WebHook Setup OK!".format(botName))
+def gender(update, context):
+    text = update.message.text
+    if re.match(regex, text):
+        text = admin.send_game(link_to_match=text)
+        update.message.reply_text(text=text)
     else:
-        logging.info("{} WebHook Setup Failed!".format(botName))
-    app.run(host="0.0.0.0", debug=True)
+        pass
+
+
+dispatcher.add_handler(gender)
+updater.start_webhook(listen="0.0.0.0",
+                      port=PORT,
+                      url_path=TOKEN)
+updater.bot.set_webhook("https://robobetsbot.herokuapp.com/" + TOKEN)
+updater.idle()
