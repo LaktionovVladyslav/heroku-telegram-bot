@@ -80,7 +80,7 @@ class GameAnalyser:
         for link in res.findAll('a'):
             if link.text not in ['-', '']:
                 team_kofs.append(link.text)
-        return team_kofs[i]
+        return team_kofs[i] or "??"
 
     def get_team_info(self):
         info = dict(main_info={}, teams=[{}, {}])
