@@ -1,32 +1,46 @@
 import os
 import re
 
-from telegram.ext import Updater
+from flask import Flask, request
+
+import telebot
+
 from utils import ChanelAdmin
 
-TOKEN = "TOKEN"
-PORT = int(os.environ.get('PORT', '8443'))
-updater = Updater(TOKEN)
-dispatcher = updater.dispatcher
+TOKEN = "844180371:AAGzN2Ls-3tuseaN9h_R22l6FAL8ZqPav2I"
+bot = telebot.TeleBot(TOKEN)
+server = Flask(__name__)
+
 regex = re.compile(
     r'^https://'
     r'www\.hltv\.org/matches'
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 admin = ChanelAdmin()
+app = Flask(__name__)
 
 
-def gender(update, context):
-    text = update.message.text
+@bot.message_handler(func=lambda message: True, content_types=['text'])
+def echo_message(message):
+    text = message.text
     if re.match(regex, text):
         text = admin.send_game(link_to_match=text)
-        update.message.reply_text(text=text)
+        bot.reply_to(message, text)
     else:
         pass
 
 
-dispatcher.add_handler(gender)
-updater.start_webhook(listen="0.0.0.0",
-                      port=PORT,
-                      url_path=TOKEN)
-updater.bot.set_webhook("https://robobetsbot.herokuapp.com/" + TOKEN)
-updater.idle()
+@server.route('/' + TOKEN, methods=['POST'])
+def getMessage():
+    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+    return "!", 200
+
+
+@server.route("/")
+def webhook():
+    bot.remove_webhook()
+    bot.set_webhook(url='https://robobetsbot.herokuapp.com/' + TOKEN)
+    return "!", 200
+
+
+if __name__ == "__main__":
+    server.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
