@@ -32,7 +32,7 @@ def echo_message(message):
         session.commit()
         bot.reply_to(message, text)
     else:
-        bot.reply_to(message, "Введите ссылку на матч !")
+        bot.reply_to(message, "Введите ссылку на матч !\nhttps://www.hltv.org/matches")
 
 
 @app.route('/' + TOKEN, methods=['POST'])
