@@ -76,8 +76,6 @@ class GameAnalyser:
     def get_kof(self, i):
         res = self.game_soup.find(class_='onexbet-odds geoprovider_1xbet betting_provider')
         team_kofs = []
-        if res.findAll('a') is None:
-            return '??'
         for link in res.findAll('a'):
             if link.text not in ['-', '']:
                 team_kofs.append(link.text if link.text is None else "??")
@@ -118,6 +116,8 @@ class GameAnalyser:
         link_to_game = self.url_to_math
         game_info = self.get_team_info()
         first_team = game_info['teams'][0]['name']
+        first_score = game_info['teams'][0]['score']
+        second_score = game_info['teams'][1]['score']
         first_team_kof = game_info['teams'][0]['kof']
         second_team_kof = game_info['teams'][1]['kof']
         second_team = game_info['teams'][1]['name']
@@ -139,6 +139,8 @@ class GameAnalyser:
             winner=game_info['teams'][result_of_game]['name'],
             first_team_kof=first_team_kof,
             second_team_kof=second_team_kof,
+            first_score=first_score,
+            second_score=second_score,
         )
 
 
@@ -176,10 +178,11 @@ class ChanelAdmin:
     def send_game(self, link_to_match):
         game_analyser = GameAnalyser(url_to_math=link_to_match)
         game_info = game_analyser.game_analyser()
-        text = "WINNER: {winner}\n{first_team} 🆚 {second_team} ➡\n️Время начала: {start_time}" \
-               "\nКоеф п1: {first_team_kof}\nКоеф п2: {second_team_kof}\nСсылка на игру: {link_to_game}" \
-               "\n {score_in_percent}".format(
-            **game_info)
+        text = "WINNER: {winner}\n{first_team} {int(first_score)} 🆚 {second_team} {int(second_score)}➡\n️Время " \
+               "начала: {start_time}\nКоеф п1: {first_team_kof}\nКоеф п2: {second_team_kof}\nСсылка на игру: {" \
+               "link_to_game}\n {score_in_percent}".format(
+            **game_info
+        )
         return text
 
 
