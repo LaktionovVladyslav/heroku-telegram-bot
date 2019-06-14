@@ -13,26 +13,24 @@ bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
 regex = re.compile(
-    r'^https://'
-    r'www\.hltv\.org/matches'
-    r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    r'^https://www\.hltv\.org/matches(?:/?|[/?]\S+)$', re.IGNORECASE)
 admin = ChanelAdmin()
 
 
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def echo_message(message):
-    user_id = message.chat.id
-    user = session.query(User).filter_by(user_id=user_id).all()
-    session.commit()
-    if bool(len(user)):
-        user[0].counts += 1
-    else:
-        user = User(user_id=user_id)
-        session.add(user)
-    session.commit()
     text = message.text
     if re.match(regex, text):
         text = admin.send_game(link_to_match=text)
+        user_id = message.chat.id
+        user = session.query(User).filter_by(user_id=user_id).all()
+        session.commit()
+        if bool(len(user)):
+            user[0].counts += 1
+        else:
+            user = User(user_id=user_id)
+            session.add(user)
+        session.commit()
         bot.reply_to(message, text)
     else:
         pass
