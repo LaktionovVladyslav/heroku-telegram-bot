@@ -109,7 +109,7 @@ class GameAnalyser:
                                                                           best_of=int(info['main_info']['best_of']))
             info['teams'][i]['count_of_won'] = self.get_count_of_won(i=i)
             info['teams'][i]['world_rating'] = self.get_world_rating(i=i)
-            info['teams'][i]['score'] = get_score(**info['teams'][i])
+            info['teams'][i]['score'] = float(get_score(**info['teams'][i]))
             info['teams'][i]['kof'] = self.get_kof(i=i)
 
         return info
@@ -176,7 +176,7 @@ class GamesParser:
 def send_game(link_to_match):
     game_analyser = GameAnalyser(url_to_math=link_to_match)
     game_info = game_analyser.game_analyser()
-    text = "WINNER: {winner}\n{first_team} {int(first_score)} 🆚 {second_team} {int(second_score)}➡\n️Время " \
+    text = "WINNER: {winner}\n{first_team} {first_score} 🆚 {second_team} {second_score}➡\n️Время " \
            "начала: {start_time}\nКоеф п1: {first_team_kof}\nКоеф п2: {second_team_kof}\nСсылка на игру: {" \
            "link_to_game}\n {score_in_percent}".format(
         **game_info
