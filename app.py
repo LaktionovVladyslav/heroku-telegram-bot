@@ -1,12 +1,13 @@
 import os
 import re
+import math
 
 from flask import Flask, request
 
 import telebot
 
 from connector import User, session
-from utils import ChanelAdmin
+from utils import send_game
 
 TOKEN = "844180371:AAGzN2Ls-3tuseaN9h_R22l6FAL8ZqPav2I"
 bot = telebot.TeleBot(TOKEN)
@@ -14,26 +15,24 @@ app = Flask(__name__)
 
 regex = re.compile(
     r'^https://www\.hltv\.org/matches(?:/?|[/?]\S+)$', re.IGNORECASE)
-admin = ChanelAdmin()
 
 
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def echo_message(message):
     text = message.text
     if re.match(regex, text):
-        text = admin.send_game(link_to_match=text)
+        text, score = send_game(link_to_match=text)
         user_id = message.chat.id
         user = session.query(User).filter_by(user_id=user_id).all()
-        session.commit()
-        if bool(len(user)):
+        if score > 1.7 and bool(len(user)):
             user[0].counts += 1
-        else:
+        elif not bool(len(user)):
             user = User(user_id=user_id)
             session.add(user)
         session.commit()
         bot.reply_to(message, text)
     else:
-        pass
+        bot.reply_to(message, "Введите ссылку на матч !")
 
 
 @app.route('/' + TOKEN, methods=['POST'])
