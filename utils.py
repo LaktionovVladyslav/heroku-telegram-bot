@@ -1,3 +1,4 @@
+import re
 import sqlite3
 from datetime import datetime
 
@@ -54,9 +55,9 @@ class GameAnalyser:
         self.tz = pytz.timezone('Europe/Kiev')
         self.game_soup = get_soup(url_to_parse=url_to_math)
 
-    def get_teams_stats_of_map(self, i):
+    def get_teams_stats_of_map(self, i, best_of):
         stats_of_maps = self.get_stats_of_map()
-        return sum([int(stats_of_maps[j][:-1]) if stats_of_maps[j] != '-' else 35 for j in range(i, 6, 2)])
+        return sum([int(stats_of_maps[j][:-1]) if stats_of_maps[j] != '-' else 35 for j in range(i, best_of-1, 2)])
 
     def get_stats_of_map(self):
         stats_of_map = [div.find('a').text for div in self.game_soup.findAll(class_='map-stats-infobox-winpercentage')]
@@ -90,6 +91,8 @@ class GameAnalyser:
         info['main_info']['start_date'] = datetime.fromtimestamp(start_date).astimezone(self.tz)
         div_with_team = self.game_soup.findAll(class_='box-headline flex-align-center')
         players_links = self.game_soup.find_all(class_="player")
+        info['main_info']['best_of'] = re.findall(r'\d+', string=self.game_soup.find(class_="padding preformatted-text").text)[0]
+        print(info['main_info']['best_of'])
         players = []
         for player_link in players_links:
             if player_link.find('a')['href'] not in players:
@@ -103,7 +106,7 @@ class GameAnalyser:
         for i, team_players in enumerate(all_links_to_players):
             info['teams'][i]['links'] = team_players
             info['teams'][i]['stat'] = get_sum_of_team_stat(team_players)
-            info['teams'][i]['stat_of_map'] = self.get_teams_stats_of_map(i=i)
+            info['teams'][i]['stat_of_map'] = self.get_teams_stats_of_map(i=i, best_of=int(info['main_info']['best_of']))
             info['teams'][i]['count_of_won'] = self.get_count_of_won(i=i)
             info['teams'][i]['world_rating'] = self.get_world_rating(i=i)
             info['teams'][i]['score'] = get_score(**info['teams'][i])
