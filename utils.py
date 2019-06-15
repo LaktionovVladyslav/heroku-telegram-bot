@@ -176,9 +176,8 @@ class GamesParser:
 def send_game(link_to_match):
     game_analyser = GameAnalyser(url_to_math=link_to_match)
     game_info = game_analyser.game_analyser()
-    text = "WINNER: {winner}\n{first_team} {first_score} 🆚 {second_team} {second_score}➡\n️Время " \
-           "начала: {start_time}\nКоеф п1: {first_team_kof}\nКоеф п2: {second_team_kof}\nСсылка на игру: {" \
-           "link_to_game}\n {score_in_percent}".format(
+    text = "WINNER: {winner}\n{first_team} {first_score}\n🆚\n{second_team} {second_score}➡\n️Время " \
+           "начала: {start_time}\nКоеф п1: {first_team_kof}\nКоеф п2: {second_team_kof}\n {score_in_percent}".format(
         **game_info
     )
     score = int(game_info['first_score']) - int(game_info['second_score'])
