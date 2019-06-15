@@ -78,7 +78,7 @@ class GameAnalyser:
         team_kofs = []
         for link in res.findAll('a'):
             if link.text not in ['-', '']:
-                team_kofs.append(link.text if link.text is None else "??")
+                team_kofs.append(link.text if link.text else "??")
         return team_kofs[i]
 
     def get_team_info(self):
@@ -90,7 +90,7 @@ class GameAnalyser:
         div_with_team = self.game_soup.findAll(class_='box-headline flex-align-center')
         players_links = self.game_soup.find_all(class_="player")
         info['main_info']['best_of'] = \
-        re.findall(r'\d+', string=self.game_soup.find(class_="padding preformatted-text").text)[0]
+            re.findall(r'\d+', string=self.game_soup.find(class_="padding preformatted-text").text)[0]
         print(info['main_info']['best_of'])
         players = []
         for player_link in players_links:
@@ -109,7 +109,7 @@ class GameAnalyser:
                                                                           best_of=int(info['main_info']['best_of']))
             info['teams'][i]['count_of_won'] = self.get_count_of_won(i=i)
             info['teams'][i]['world_rating'] = self.get_world_rating(i=i)
-            info['teams'][i]['score'] = float(get_score(**info['teams'][i]))
+            info['teams'][i]['score'] = int(get_score(**info['teams'][i]))
             info['teams'][i]['kof'] = self.get_kof(i=i)
 
         return info
