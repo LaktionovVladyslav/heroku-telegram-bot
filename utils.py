@@ -79,10 +79,13 @@ class GameAnalyser:
     def get_kof(self, i):
         res = self.game_soup.find(class_='onexbet-odds geoprovider_1xbet betting_provider')
         team_kofs = []
-        for link in res.findAll('a'):
-            if link.text not in ['-', '']:
-                team_kofs.append(link.text if link.text else "??")
-        return team_kofs[i]
+        if len(res.findAll('a')):
+            for link in res.findAll('a'):
+                if link.text not in ['-', '']:
+                    team_kofs.append(link.text)
+            return team_kofs[i]
+        else:
+            return '??'
 
     def get_team_info(self):
         info = dict(main_info={}, teams=[{}, {}])
