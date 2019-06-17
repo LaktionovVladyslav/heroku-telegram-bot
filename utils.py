@@ -97,8 +97,11 @@ class GameAnalyser:
         print(info['main_info']['best_of'])
         players = []
         for player_link in players_links:
-            if player_link.find('a').get('href') not in players:
-                players.append(player_link.find('a').get('href'))
+            if player_link.find('a'):
+                if player_link.find('a').get('href') not in players:
+                    players.append(player_link.find('a').get('href'))
+        else:
+            players.append(None)
         all_links_to_players = ["https://www.hltv.org" + link if link is not None else None for link in players]
         count_of_player_in_team = int(len(all_links_to_players) / 2)
         all_links_to_players = [all_links_to_players[:count_of_player_in_team],
