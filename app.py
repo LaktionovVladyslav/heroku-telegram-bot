@@ -17,22 +17,23 @@ regex = re.compile(
     r'^https://www\.hltv\.org/matches(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 
-@bot.message_handler(func=lambda message: True, content_types=['text'])
+@bot.message_handler(regexp=r'^https://www\.hltv\.org/matches(?:/?|[/?]\S+)$')
 def echo_message(message):
     text = message.text
-    if re.match(regex, text):
-        text, score = send_game(link_to_match=text)
-        user_id = message.chat.id
-        user = session.query(User).filter_by(user_id=user_id).all()
-        if score > 1.7 and bool(len(user)):
-            user[0].counts += 1
-        elif not bool(len(user)):
-            user = User(user_id=user_id)
-            session.add(user)
-        session.commit()
-        bot.reply_to(message, text)
-    else:
-        bot.reply_to(message, "Введите ссылку на матч !\nhttps://www.hltv.org/matches")
+    text, score = send_game(link_to_match=text)
+    user_id = message.chat.id
+    user = session.query(User).filter_by(user_id=user_id).all()
+    if score > 1.7 and bool(len(user)):
+        user[0].counts += 1
+    elif not bool(len(user)):
+        user = User(user_id=user_id)
+        session.add(user)
+    session.commit()
+    bot.reply_to(message, text)
+    # if re.match(regex, text):
+    #
+    # else:
+    #     bot.reply_to(message, "Введите ссылку на матч !\nhttps://www.hltv.org/matches")
 
 
 @app.route('/' + TOKEN, methods=['POST'])
