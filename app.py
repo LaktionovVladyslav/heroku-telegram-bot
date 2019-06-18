@@ -42,7 +42,7 @@ def handle_start_help(message):
     if not bool(len(user)):
         user = User(user_id=message.chat.id)
         session.add(user)
-    session.commit()
+        session.commit()
     bot.reply_to(message=message, text='Весь анализ делает бот и выдает оценку каждой команды по 20-ти балльной '
                                        'шкале. Чем больше разница, тем больше шанс захода прогноза. У бота есть два '
                                        'исхода:\n1) В проходе уверен на 90%\n2) Возможны трудности с проходом.\nВ '
