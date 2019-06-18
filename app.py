@@ -36,6 +36,26 @@ def echo_message(message):
     #     bot.reply_to(message, "Введите ссылку на матч !\nhttps://www.hltv.org/matches")
 
 
+@bot.message_handler(commands=['start', 'help'])
+def handle_start_help(message):
+    user = session.query(User).filter_by(user_id=message.chat.id).all()
+    if not bool(len(user)):
+        user = User(user_id=message.chat.id)
+        session.add(user)
+    session.commit()
+    bot.reply_to(message=message, text='Весь анализ делает бот и выдает оценку каждой команды по 20-ти балльной '
+                                       'шкале. Чем больше разница, тем больше шанс захода прогноза. У бота есть два '
+                                       'исхода:\n1) В проходе уверен на 90%\n2) Возможны трудности с проходом.\nВ '
+                                       'первом случае можно ставить до 20-25% банка.\nВо втором случае, '
+                                       'лучше поставить сумму для округления своего баланса. Например если у вас 270 '
+                                       'грн на балансе, то ставьте 20.')
+
+
+@bot.message_handler(content_types=['text'])
+def handle_docs_audio(message):
+    bot.reply_to(message, "Введите ссылку на матч !\nhttps://www.hltv.org/matches")
+
+
 @app.route('/' + TOKEN, methods=['POST'])
 def getMessage():
     bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
