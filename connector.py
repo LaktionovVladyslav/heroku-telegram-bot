@@ -18,5 +18,7 @@ class User(Base):
     __tablename__ = 'themes'
     user_id = Column(Integer, primary_key=True, unique=True)
     counts = Column(Integer, default=0)
+    max_count = Column(Integer, default=2)
 
 
+Base.metadata.create_all(db)
