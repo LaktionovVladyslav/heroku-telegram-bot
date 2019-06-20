@@ -78,7 +78,10 @@ def echo_message(message):
         )
         bot.reply_to(message, text)
     else:
-        bot.reply_to(message, 'Чтобы увеличить количество попыток, пригласите друзей')
+        text = 'Чтобы увеличить количество ' \
+               'попыток, пригласите друзей'
+        text += 'https://t.me/devrobbot?start=%s' % message.chat.id
+        bot.reply_to(message, text=text)
 
 
 @bot.message_handler(commands=['start'])
