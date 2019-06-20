@@ -3,8 +3,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, create_engine, ARRAY, Table
 
-DATABASE_URI = 'postgres+psycopg2://yyewnihweunzvh:2e8441c2493a744cd9ee7b9ad46edb969f6ec7508ed9cf884d24904705b2f4a1' \
-               '@ec2-50-19-221-38.compute-1.amazonaws.com:5432/ddvm01l0cr0rqa'
+DATABASE_URI = 'postgres+psycopg2://cwyzqcibwgfibp:35c8357e58aae1f7f11a8c7d9683f4043c44524f83309af717293fda96292462' \
+               '@ec2-54-221-214-3.compute-1.amazonaws.com:5432/dccefmk7lklpi1'
 db = create_engine(DATABASE_URI)
 
 Base = declarative_base()
@@ -15,7 +15,7 @@ session = Session()
 
 
 class User(Base):
-    __tablename__ = 'themes'
+    __tablename__ = 'users'
     user_id = Column(Integer, primary_key=True, unique=True)
     counts = Column(Integer, default=0)
     max_count = Column(Integer, default=2)
