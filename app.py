@@ -133,8 +133,8 @@ def button_handler(message):
 
 
 if __name__ == "__main__":
+    app = Flask(__name__)
     if os.environ.get('env') == "prod":
-        app = Flask(__name__)
         @app.route('/' + TOKEN, methods=['POST'])
         def get_message():
             bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
