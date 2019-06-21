@@ -9,16 +9,13 @@ from telebot.apihelper import ApiException
 from telebot.types import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
 from utils import send_game
-
-
-app = Flask(__name__)
 if os.environ.get('env') == "prod":
-    app.config = config.ProductionConfig
-    TOKEN = app.config.TOKEN
+    config = config.ProductionConfig
+    TOKEN = config.TOKEN
     bot = telebot.TeleBot(TOKEN)
 else:  # os.environ.get('env') == "dev"
-    app.config = config.DevelopmentConfig
-    TOKEN = app.config.TOKEN
+    config = config.DevelopmentConfig
+    TOKEN = config.TOKEN
     bot = telebot.TeleBot(TOKEN)
 
 inline_key_board = InlineKeyboardMarkup()
@@ -138,6 +135,7 @@ def button_handler(message):
 
 if __name__ == "__main__":
     if os.environ.get('env') == "prod":
+        app = Flask(__name__)
         @app.route('/' + TOKEN, methods=['POST'])
         def get_message():
             bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
