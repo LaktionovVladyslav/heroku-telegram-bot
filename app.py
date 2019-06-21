@@ -10,8 +10,8 @@ from telebot.types import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeybo
 from connector import User, session
 from utils import send_game
 
-# TOKEN = "844180371:AAGzN2Ls-3tuseaN9h_R22l6FAL8ZqPav2I"  # PROD
-TOKEN = "794766889:AAFvOD3zOdXi-OIYCN0cEq2fm06iZFm13jo"  # DEV
+TOKEN = "844180371:AAGzN2Ls-3tuseaN9h_R22l6FAL8ZqPav2I"  # PROD
+# TOKEN = "794766889:AAFvOD3zOdXi-OIYCN0cEq2fm06iZFm13jo"  # DEV
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
@@ -176,6 +176,6 @@ def button_handler(message):
 
 
 if __name__ == "__main__":
-    # app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))  # PROD
+    app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))  # PROD
     # bot.remove_webhook()
-    bot.polling()  # DEV
+    # bot.polling()  # DEV
