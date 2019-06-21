@@ -93,10 +93,8 @@ def echo_message(message):
         )
         bot.reply_to(message, text)
     else:
-        text = 'Чтобы увеличить количество ' \
-               'попыток, пригласите друзей'
-        text += 'https://t.me/RobobetsBot?start=%s' % message.chat.id
-        bot.reply_to(message, text=text)
+        text = 'Чтобы увеличить количество попыток, пригласите друзей'
+        bot.reply_to(message, text=text, reply_markup=inline_key_board)
 
 
 @bot.message_handler(commands=['start'])
@@ -151,7 +149,7 @@ def button_handler(message):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'get_link')
 def command_click_inline(call):
-    text = f'https://t.me/devrobbot?start={call.from_user.id}'
+    text = f'https://t.me/RobobetsBot?start={call.from_user.id}'
     # bot.answer_callback_query(call.id, text=text)
     bot.send_message(call.from_user.id, text=text)
 
