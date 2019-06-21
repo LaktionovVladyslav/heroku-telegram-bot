@@ -3,11 +3,12 @@ import re
 from flask import Flask, request
 
 import telebot
+from telebot.types import ReplyKeyboardMarkup
 
 from connector import User, session
 from utils import send_game
 
-TOKEN = "794766889:AAFvOD3zOdXi-OIYCN0cEq2fm06iZFm13jo"
+TOKEN = "844180371:AAGzN2Ls-3tuseaN9h_R22l6FAL8ZqPav2I"
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
@@ -92,11 +93,19 @@ def handle_start_help(message):
         add_ref(user_id=message.chat.id, ref_user_id=ref_user_id)
     user = log_in(user_id=message.chat.id)
     user_info = get_user_info(user.user_id)
-    text = 'Здраствуйте!Весь анализ делает бот и выдает оценку каждой команды по 20-ти балльной шкале. Чем больше разница, тем больше шанс захода прогноза. У бота есть два исхода:\n1) В проходе уверен на 90%\n2) Возможны трудности с проходом.\nВ первом случае можно ставить до 20-25% банка.\nВо втором случае, лучше поставить сумму для округления своего баланса. Например если у вас 270 грн на балансе, то ставьте 20.'
-    text += "\nВведите ссылку на матч !\nhttps://www.hltv.org/matches"
-    text += f"\nНа сегодня осталось {user_info.get('daily_limit')} попыток\nИспользованно {user_info.get('counts')}\n" \
-        f"Лимит на день {user_info.get('max_count')}"
-    bot.reply_to(message=message, text=text)
+    custom_keyboard = [['Инструкция', 'Баланс'],
+                       ['Реф. система', 'Получить прогноз']]
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard)
+    # text = 'Здраствуйте!Весь анализ делает бот и выдает оценку каждой команды по 20-ти балльной шкале. Чем больше ' \
+    #        'разница, тем больше шанс захода прогноза. У бота есть два исхода:\n1) В проходе уверен на 90%\n2) ' \
+    #        'Возможны трудности с проходом.\nВ первом случае можно ставить до 20-25% банка.\nВо втором случае, ' \
+    #        'лучше поставить сумму для округления своего баланса. Например если у вас 270 грн на балансе, то ставьте ' \
+    #        '20. '
+    # text += "\nВведите ссылку на матч !\nhttps://www.hltv.org/matches"
+    # text += f"\nНа сегодня осталось {user_info.get('daily_limit')} попыток\nИспользованно {user_info.get('counts')}\n" \
+    #     f"Лимит на день {user_info.get('max_count')}"
+    text = 'Здраствуйте'
+    bot.reply_to(message=message, text=text, reply_markup=reply_markup)
 
 
 @bot.message_handler(content_types=['text'])
@@ -119,3 +128,4 @@ def set_webhook():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
+    # bot.polling()
