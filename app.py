@@ -3,6 +3,7 @@ import re
 
 import telebot
 from flask import Flask, request
+from telebot.apihelper import ApiException
 from telebot.types import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
 from connector import User, session
@@ -78,7 +79,10 @@ def handle_start_help(message):
             )
             bot.send_message(chat_id=ref_user_id, text=text)
     else:
-        bot.send_message(chat_id=ref_user_id, text='Пользователь уже использует')
+        try:
+            bot.send_message(chat_id=ref_user_id, text='Пользователь уже использует')
+        except ApiException:
+            pass
     reply_markup = ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=2)
     reply_markup.add(*menu_items)
     text = 'Здраствуйте ' + user.first_name
