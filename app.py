@@ -9,6 +9,7 @@ from telebot.apihelper import ApiException
 from telebot.types import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
 from utils import send_game
+
 if os.environ.get('env') == "prod":
     config = config.ProductionConfig
     TOKEN = config.TOKEN
@@ -17,6 +18,13 @@ else:  # os.environ.get('env') == "dev"
     config = config.DevelopmentConfig
     TOKEN = config.TOKEN
     bot = telebot.TeleBot(TOKEN)
+
+if os.environ.get('env') == "prod":
+    app = Flask(__name__)
+    @app.route('/' + TOKEN, methods=['POST'])
+    def get_message():
+        bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+        return "Hello from Heroku!", 200
 
 inline_key_board = InlineKeyboardMarkup()
 get_ref_link_button = InlineKeyboardButton("Получить ссылку для приглашения друзей", callback_data='get_link')
@@ -133,12 +141,7 @@ def button_handler(message):
 
 
 if __name__ == "__main__":
-    app = Flask(__name__)
     if os.environ.get('env') == "prod":
-        @app.route('/' + TOKEN, methods=['POST'])
-        def get_message():
-            bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
-            return "Hello from Heroku!", 200
         app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
         bot.set_webhook(url='https://robobetsbot.herokuapp.com/' + TOKEN)
     else:
