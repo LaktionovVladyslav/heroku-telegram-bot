@@ -97,7 +97,6 @@ class GameAnalyser:
         players_links = self.game_soup.find_all(class_="player")
         info['main_info']['best_of'] = \
             re.findall(r'\d+', string=self.game_soup.find(class_="padding preformatted-text").text)[0]
-        print(info['main_info']['best_of'])
         players = []
         for player_link in players_links:
             if player_link.find('a'):
