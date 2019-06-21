@@ -81,10 +81,8 @@ def handle_start_help(message):
             bot.send_message(chat_id=ref_user_id, text='Ваш друг перешел по вашей ссылке')
             ref_user.add_ref_count()
             ref_user = get_user_info(user_id=ref_user_id)
-            text = "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
+            text = "Ваш баланс: {daily_limit} прогноз(ов)".format(
                 daily_limit=ref_user.limit - ref_user.counts,
-                counts=ref_user.counts,
-                max_count=ref_user.limit
             )
             bot.send_message(chat_id=ref_user_id, text=text)
     else:
@@ -111,10 +109,8 @@ def button_handler(message):
 @bot.message_handler(func=lambda message: message.text == 'Баланс')
 def button_handler(message):
     user = log_in(user_id=message.chat.id)
-    text = "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
+    text = "Ваш баланс: {daily_limit} прогноз(ов)".format(
         daily_limit=user.limit - user.counts,
-        counts=user.counts,
-        max_count=user.limit
     )
     bot.reply_to(message, text=text, reply_markup=inline_key_board)
 
@@ -137,10 +133,8 @@ def button_handler(message):
     user = log_in(user_id=message.chat.id)
     text = 'Каждый день вы получаете 1 бесплатный прогноз, которым можете воспользоваться в течений одного ' \
            'дня.\nЗа каждого приглашенного пользователя вы получаете 1 прогноз. '
-    text += "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
+    text += "\nВаш баланс: {daily_limit} прогноз(ов)".format(
         daily_limit=user.limit - user.counts,
-        counts=user.counts,
-        max_count=user.limit
     )
     bot.reply_to(message, text=text, reply_markup=inline_key_board)
 
