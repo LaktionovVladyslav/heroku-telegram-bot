@@ -22,16 +22,6 @@ inline_key_board = InlineKeyboardMarkup()
 get_ref_link_button = InlineKeyboardButton("Получить ссылку для приглашения друзей", callback_data='get_link')
 inline_key_board.row(get_ref_link_button)
 
-if os.environ.get('env') == "prod":
-    app = Flask(__name__)
-
-
-    @app.route('/' + TOKEN, methods=['POST'])
-    def get_message():
-        bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
-        return "Hello from Heroku!", 200
-
-
 def sign_up(user):
     user = connector.User(user)
     return user
@@ -144,6 +134,11 @@ def button_handler(message):
 
 if __name__ == "__main__":
     if os.environ.get('env') == "prod":
+        app = Flask(__name__)
+        @app.route('/' + TOKEN, methods=['POST'])
+        def get_message():
+            bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+            return "Hello from Heroku!", 200
         app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
         bot.set_webhook(url='https://robobetsbot.herokuapp.com/' + TOKEN)
     else:
