@@ -119,7 +119,7 @@ def button_handler(message):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'get_link')
 def command_click_inline(call):
-    text = app.config.LINK_TO_BOT % call.from_user.id
+    text = config.LINK_TO_BOT % call.from_user.id
     bot.send_message(call.from_user.id, text=text)
 
 
