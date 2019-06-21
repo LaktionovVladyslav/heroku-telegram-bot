@@ -9,7 +9,7 @@ import config
 if os.environ.get('env') == "prod":
     db = create_engine(config.ProductionConfig.DATABASE_URI)
 else:  # os.environ.get('env') == "dev"
-    db = create_engine(config.ProductionConfig.DATABASE_URI)
+    db = create_engine(config.DevelopmentConfig.DATABASE_URI)
 
 Base = declarative_base()
 
@@ -56,3 +56,5 @@ class User(Base):
             return True
         else:
             return False
+
+# Base.metadata.create_all(db)
