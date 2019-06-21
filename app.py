@@ -58,13 +58,13 @@ def echo_message(message):
         text, score = send_game(link_to_match=text)
         counts = user.add_count()
         text += "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
-            daily_limit=user.daily_limit,
+            daily_limit=user.limit - counts,
             counts=counts,
             max_count=user.limit
         )
         user.rem_count()
         bot.reply_to(message, text)
-    elif user.check() in None:
+    elif user.check() is None:
         text = 'Чтобы увеличить количество попыток, пригласите друзей'
         bot.reply_to(message, text=text, reply_markup=inline_key_board)
 
@@ -82,7 +82,7 @@ def handle_start_help(message):
             ref_user.add_ref_count()
             ref_user = get_user_info(user_id=ref_user_id)
             text = "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
-                daily_limit=ref_user.daily_limit,
+                daily_limit=ref_user.limit - ref_user.counts,
                 counts=ref_user.counts,
                 max_count=ref_user.limit
             )
@@ -112,7 +112,7 @@ def button_handler(message):
 def button_handler(message):
     user = get_user_info(user_id=message.chat.id)
     text = "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
-        daily_limit=user.daily_limit,
+        daily_limit=user.limit - user.counts,
         counts=user.counts,
         max_count=user.limit
     )
@@ -137,9 +137,9 @@ def button_handler(message):
     text = 'Каждый день вы получаете 1 бесплатный прогноз, которым можете воспользоваться в течений одного ' \
            'дня.\nЗа каждого приглашенного пользователя вы получаете 1 прогноз. '
     text += "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
-        daily_limit=user.daily_limit,
+        daily_limit=user.limit - user.counts,
         counts=user.counts,
-        max_count=user.ref_count + user.daily_limit + user.payed
+        max_count=user.limit
     )
     bot.reply_to(message, text=text, reply_markup=inline_key_board)
 
