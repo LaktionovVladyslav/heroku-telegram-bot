@@ -18,7 +18,40 @@ class User(Base):
     __tablename__ = 'users'
     user_id = Column(Integer, primary_key=True, unique=True)
     counts = Column(Integer, default=0)
-    max_count = Column(Integer, default=2)
+    daily_limit = Column(Integer, default=1)
+    user_name = Column(String)
+    first_name = Column(String)
+    last_name = Column(String)
+    payed = Column(Integer, default=0)
+    ref_count = Column(Integer, default=0)
+
+    def __init__(self, user):
+        self.user_id = user.id
+        self.user_name = user.username
+        self.first_name = user.first_name
+        self.last_name = user.last_name
+        session.add(self)
+        session.commit()
+
+    def add_count(self):
+        self.counts += 1
+        session.commit()
+        return self.counts
+
+    def add_ref_count(self):
+        self.ref_count += 1
+        session.commit()
+
+    def check(self):
+        valid_count = self.ref_count + self.daily_limit + self.payed
+        return (valid_count - self.counts) > 0
+
+    def add_ref_user(self, user_id):
+        if not session.query(User).get(user_id):
+            self.add_ref_count()
+            return True
+        else:
+            return False
 
 
 Base.metadata.create_all(db)

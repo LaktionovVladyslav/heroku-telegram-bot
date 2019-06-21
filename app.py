@@ -1,10 +1,8 @@
-import os
+import os   # PROD
 import re
-from typing import Dict, Any, AnyStr
-
-from flask import Flask, request
 
 import telebot
+from flask import Flask, request
 from telebot.types import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
 from connector import User, session
@@ -20,15 +18,15 @@ regex = re.compile(
 
 pattern_chat_id = r'\d{9}'
 menu_items = ['Инструкция', 'Баланс', 'Реф. система', 'Получить прогноз']
+# link_to_bot = 'https://t.me/devrobbot?start=%s'   # DEV
+link_to_bot = 'https://t.me/RobobetsBot?start=%s'   # PROD
 inline_key_board = InlineKeyboardMarkup()
 get_ref_link_button = InlineKeyboardButton("Получить ссылку для приглашения друзей", callback_data='get_link')
 inline_key_board.row(get_ref_link_button)
 
 
-def sign_up(user_id):
-    user = User(user_id=user_id)
-    session.add(user)
-    session.commit()
+def sign_up(user):
+    user = User(user)
     return user
 
 
@@ -41,55 +39,20 @@ def log_in(user_id):
 
 def get_user_info(user_id):
     user = session.query(User).get(user_id)
-    user_id = user.user_id
-    counts = user.counts
-    max_count = user.max_count
-    limit = max_count - counts
-    return dict(user_id=user_id, counts=counts, max_count=max_count, limit=limit)
-
-
-def add_count(user_id):
-    user = session.query(User).get(user_id)
-    user.counts += 1
-    session.commit()
-
-
-def add_max_count(user_id):
-    user = session.query(User).get(user_id)
-    user.max_count += 1
-    session.commit()
-
-
-def check(user_id):
-    user = session.query(User).get(user_id)
-    return bool(user.max_count - user.counts)
-
-
-def add_ref(user_id, ref_user_id):
-    if not session.query(User).get(user_id):
-        add_max_count(user_id=ref_user_id)
-        bot.send_message(chat_id=ref_user_id, text='Ваш друг перешел по вашей ссылке')
-        user_info = get_user_info(ref_user_id)
-        text = "\nНа вашем балансе:\nДоступно {limit}\nИспользованно {counts}\n" \
-               "Всего {max_count}".format(
-            **user_info
-        )
-        bot.send_message(chat_id=ref_user_id, text=text)
-    else:
-        bot.send_message(chat_id=ref_user_id, text='Пользователь уже использует')
+    return user
 
 
 @bot.message_handler(regexp=r'^https://www\.hltv\.org/matches(?:/?|[/?]\S+)$')
 def echo_message(message):
-    if check(message.chat.id):
-        user = log_in(user_id=message.chat.id)
+    user = get_user_info(user_id=message.chat.id)
+    if user.check():
         text = message.text
         text, score = send_game(link_to_match=text)
-        add_count(user.user_id)
-        user_info = get_user_info(user.user_id)
-        text += "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\n" \
-                "Лимит на день {max_count}".format(
-            **user_info
+        counts = user.add_count()
+        text += "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
+            daily_limit=user.daily_limit,
+            counts=counts,
+            max_count=user.ref_count + user.daily_limit + user.payed
         )
         bot.reply_to(message, text)
     else:
@@ -99,18 +62,27 @@ def echo_message(message):
 
 @bot.message_handler(commands=['start'])
 def handle_start_help(message):
+    user = get_user_info(user_id=message.chat.id)
     ref_user_id = message.text[7:]
-    if re.match(pattern=pattern_chat_id, string=ref_user_id):
-        add_ref(user_id=message.chat.id, ref_user_id=ref_user_id)
+    if not user:
+        user = User(message.from_user)
+        if re.match(pattern=pattern_chat_id, string=ref_user_id):
+            ref_user = get_user_info(user_id=ref_user_id)
+            bot.send_message(chat_id=ref_user_id, text='Ваш друг перешел по вашей ссылке')
+            ref_user.add_ref_count()
+            ref_user = get_user_info(user_id=ref_user_id)
+            text = "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
+                daily_limit=ref_user.daily_limit,
+                counts=ref_user.counts,
+                max_count=ref_user.ref_count + ref_user.daily_limit + ref_user.payed
+            )
+            bot.send_message(chat_id=ref_user_id, text=text)
+    else:
+        bot.send_message(chat_id=ref_user_id, text='Пользователь уже использует')
     reply_markup = ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=2)
     reply_markup.add(*menu_items)
-    text = 'Здраствуйте'
+    text = 'Здраствуйте ' + user.first_name
     bot.reply_to(message=message, text=text, reply_markup=reply_markup)
-
-
-# @bot.message_handler(content_types=['text'])
-# def handle_docs_audio(message):
-#     bot.reply_to(message, "Введите ссылку на матч !\nhttps://www.hltv.org/matches")
 
 
 @app.route('/' + TOKEN, methods=['POST'])
@@ -128,7 +100,7 @@ def set_webhook():
 
 @bot.message_handler(func=lambda message: message.text == 'Инструкция')
 def button_handler(message):
-    text = "Здраствуйте!Весь анализ делает бот и выдает оценку каждой команды по 20-ти балльной шкале. Чем больше " \
+    text = "Весь анализ делает бот и выдает оценку каждой команды по 20-ти балльной шкале. Чем больше " \
            "разница, тем больше шанс захода прогноза. У бота есть два исхода:\n1) В проходе уверен на 90%\n2) " \
            "Возможны трудности с проходом.\nВ первом случае можно ставить до 20-25% банка.\nВо втором случае, " \
            "лучше поставить сумму для округления своего баланса. Например если у вас 270 грн на балансе, то ставьте " \
@@ -138,19 +110,18 @@ def button_handler(message):
 
 @bot.message_handler(func=lambda message: message.text == 'Баланс')
 def button_handler(message):
-    user = log_in(user_id=message.chat.id)
-    user_info = get_user_info(user.user_id)
-    text = "\nНа вашем балансе:\nДоступно {limit}\nИспользованно {counts}\n" \
-           "Всего {max_count}".format(
-        **user_info
+    user = get_user_info(user_id=message.chat.id)
+    text = "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
+        daily_limit=user.daily_limit,
+        counts=user.counts,
+        max_count=user.ref_count + user.daily_limit + user.payed
     )
     bot.reply_to(message, text=text, reply_markup=inline_key_board)
 
 
 @bot.callback_query_handler(func=lambda call: call.data == 'get_link')
 def command_click_inline(call):
-    text = f'https://t.me/RobobetsBot?start={call.from_user.id}'
-    # bot.answer_callback_query(call.id, text=text)
+    text = link_to_bot % call.from_user.id
     bot.send_message(call.from_user.id, text=text)
 
 
@@ -162,13 +133,13 @@ def button_handler(message):
 
 @bot.message_handler(func=lambda message: message.text == 'Реф. система')
 def button_handler(message):
-    user = log_in(user_id=message.chat.id)
-    user_info = get_user_info(user.user_id)
+    user = get_user_info(user_id=message.chat.id)
     text = 'Каждый день вы получаете 1 бесплатный прогноз, которым можете воспользоваться в течений одного ' \
            'дня.\nЗа каждого приглашенного пользователя вы получаете 1 прогноз. '
-    text += "\nНа вашем балансе:\nДоступно {limit}\nИспользованно {counts}\n" \
-            "Всего {max_count}".format(
-        **user_info
+    text += "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
+        daily_limit=user.daily_limit,
+        counts=user.counts,
+        max_count=user.ref_count + user.daily_limit + user.payed
     )
     bot.reply_to(message, text=text, reply_markup=inline_key_board)
 
