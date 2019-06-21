@@ -21,6 +21,8 @@ else:  # os.environ.get('env') == "dev"
 
 if os.environ.get('env') == "prod":
     app = Flask(__name__)
+
+
     @app.route('/' + TOKEN, methods=['POST'])
     def get_message():
         bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
@@ -29,6 +31,7 @@ if os.environ.get('env') == "prod":
 inline_key_board = InlineKeyboardMarkup()
 get_ref_link_button = InlineKeyboardButton("Получить ссылку для приглашения друзей", callback_data='get_link')
 inline_key_board.row(get_ref_link_button)
+
 
 def sign_up(user):
     user = connector.User(user)
@@ -57,10 +60,11 @@ def echo_message(message):
         text += "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
             daily_limit=user.daily_limit,
             counts=counts,
-            max_count=user.ref_count + user.daily_limit + user.payed
+            max_count=user.limit
         )
+        user.rem_count()
         bot.reply_to(message, text)
-    else:
+    elif user.check() in None:
         text = 'Чтобы увеличить количество попыток, пригласите друзей'
         bot.reply_to(message, text=text, reply_markup=inline_key_board)
 
@@ -80,7 +84,7 @@ def handle_start_help(message):
             text = "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
                 daily_limit=ref_user.daily_limit,
                 counts=ref_user.counts,
-                max_count=ref_user.ref_count + ref_user.daily_limit + ref_user.payed
+                max_count=ref_user.limit
             )
             bot.send_message(chat_id=ref_user_id, text=text)
     else:
@@ -110,7 +114,7 @@ def button_handler(message):
     text = "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
         daily_limit=user.daily_limit,
         counts=user.counts,
-        max_count=user.ref_count + user.daily_limit + user.payed
+        max_count=user.limit
     )
     bot.reply_to(message, text=text, reply_markup=inline_key_board)
 

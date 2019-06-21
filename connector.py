@@ -8,7 +8,7 @@ import config
 
 if os.environ.get('env') == "prod":
     db = create_engine(config.ProductionConfig.DATABASE_URI)
-else:  #os.environ.get('env') == "dev"
+else:  # os.environ.get('env') == "dev"
     db = create_engine(config.ProductionConfig.DATABASE_URI)
 
 Base = declarative_base()
@@ -21,12 +21,10 @@ class User(Base):
     __tablename__ = 'users'
     user_id = Column(Integer, primary_key=True, unique=True)
     counts = Column(Integer, default=0)
-    daily_limit = Column(Integer, default=1)
+    limit = Column(Integer, default=1)
     user_name = Column(String)
     first_name = Column(String)
     last_name = Column(String)
-    payed = Column(Integer, default=0)
-    ref_count = Column(Integer, default=0)
 
     def __init__(self, user):
         self.user_id = user.id
@@ -42,12 +40,15 @@ class User(Base):
         return self.counts
 
     def add_ref_count(self):
-        self.ref_count += 1
+        self.limit += 1
+        session.commit()
+
+    def rem_count(self):
+        self.limit -= 1
         session.commit()
 
     def check(self):
-        valid_count = self.ref_count + self.daily_limit + self.payed
-        return (valid_count - self.counts) > 0
+        return (self.limit - self.counts) > 0
 
     def add_ref_user(self, user_id):
         if not session.query(User).get(user_id):
