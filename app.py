@@ -142,6 +142,7 @@ if __name__ == "__main__":
         def get_message():
             bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
             return "Hello from Heroku!", 200
+
         app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
         bot.set_webhook(url='https://robobetsbot.herokuapp.com/' + TOKEN)
     else:
