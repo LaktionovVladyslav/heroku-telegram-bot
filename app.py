@@ -52,7 +52,7 @@ def get_user_info(user_id):
 
 @bot.message_handler(regexp=r'^https://www\.hltv\.org/matches(?:/?|[/?]\S+)$')
 def echo_message(message):
-    user = get_user_info(user_id=message.chat.id)
+    user = log_in(user_id=message.chat.id)
     if user.check():
         text = message.text
         text, score = send_game(link_to_match=text)
@@ -71,7 +71,7 @@ def echo_message(message):
 
 @bot.message_handler(commands=['start'])
 def handle_start_help(message):
-    user = get_user_info(user_id=message.chat.id)
+    user = log_in(user_id=message.chat.id)
     menu_items = ['Инструкция', 'Баланс', 'Реф. система', 'Получить прогноз']
     ref_user_id = message.text[7:]
     if not user:
@@ -110,7 +110,7 @@ def button_handler(message):
 
 @bot.message_handler(func=lambda message: message.text == 'Баланс')
 def button_handler(message):
-    user = get_user_info(user_id=message.chat.id)
+    user = log_in(user_id=message.chat.id)
     text = "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
         daily_limit=user.limit - user.counts,
         counts=user.counts,
@@ -127,13 +127,14 @@ def command_click_inline(call):
 
 @bot.message_handler(func=lambda message: message.text == 'Получить прогноз')
 def button_handler(message):
+    log_in(user_id=message.chat.id)
     text = "Введите ссылку на матч !\nhttps://www.hltv.org/matches"
     bot.reply_to(message, text=text)
 
 
 @bot.message_handler(func=lambda message: message.text == 'Реф. система')
 def button_handler(message):
-    user = get_user_info(user_id=message.chat.id)
+    user = log_in(user_id=message.chat.id)
     text = 'Каждый день вы получаете 1 бесплатный прогноз, которым можете воспользоваться в течений одного ' \
            'дня.\nЗа каждого приглашенного пользователя вы получаете 1 прогноз. '
     text += "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
