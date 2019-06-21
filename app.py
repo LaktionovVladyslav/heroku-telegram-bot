@@ -1,5 +1,7 @@
 import os
 import re
+from typing import Dict, Any, AnyStr
+
 from flask import Flask, request
 
 import telebot
@@ -8,8 +10,8 @@ from telebot.types import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeybo
 from connector import User, session
 from utils import send_game
 
-TOKEN = "844180371:AAGzN2Ls-3tuseaN9h_R22l6FAL8ZqPav2I"  # PROD
-# TOKEN = "794766889:AAFvOD3zOdXi-OIYCN0cEq2fm06iZFm13jo"  # DEV
+# TOKEN = "844180371:AAGzN2Ls-3tuseaN9h_R22l6FAL8ZqPav2I"  # PROD
+TOKEN = "794766889:AAFvOD3zOdXi-OIYCN0cEq2fm06iZFm13jo"  # DEV
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
@@ -66,7 +68,13 @@ def check(user_id):
 def add_ref(user_id, ref_user_id):
     if not session.query(User).get(user_id):
         add_max_count(user_id=ref_user_id)
-        bot.send_message(chat_id=ref_user_id, text='Пользователь перешел по вашей ссылке')
+        bot.send_message(chat_id=ref_user_id, text='Ваш друг перешел по вашей ссылке')
+        user_info = get_user_info(ref_user_id)
+        text = "\nНа вашем балансе:\nДоступно {limit}\nИспользованно {counts}\n" \
+               "Всего {max_count}".format(
+            **user_info
+        )
+        bot.send_message(chat_id=ref_user_id, text=text)
     else:
         bot.send_message(chat_id=ref_user_id, text='Пользователь уже использует')
 
@@ -87,7 +95,7 @@ def echo_message(message):
     else:
         text = 'Чтобы увеличить количество ' \
                'попыток, пригласите друзей'
-        text += 'https://t.me/devrobbot?start=%s' % message.chat.id
+        text += 'https://t.me/RobobetsBot?start=%s' % message.chat.id
         bot.reply_to(message, text=text)
 
 
@@ -134,22 +142,40 @@ def button_handler(message):
 def button_handler(message):
     user = log_in(user_id=message.chat.id)
     user_info = get_user_info(user.user_id)
-    text = "\nНа вашем балансе доступно {limit} попыток прогноза\nИспользованно {counts}\n" \
-           "Лимит {max_count}".format(
+    text = "\nНа вашем балансе:\nДоступно {limit}\nИспользованно {counts}\n" \
+           "Всего {max_count}".format(
         **user_info
     )
-    # text += '\nhttps://t.me/devrobbot?start=%s' % message.chat.id
     bot.reply_to(message, text=text, reply_markup=inline_key_board)
 
 
 @bot.callback_query_handler(func=lambda call: call.data == 'get_link')
 def command_click_inline(call):
     text = f'https://t.me/devrobbot?start={call.from_user.id}'
-    bot.answer_callback_query(call.id, text=text)
-    bot.reply_to(call.from_user.id, text=text)
+    # bot.answer_callback_query(call.id, text=text)
+    bot.send_message(call.from_user.id, text=text)
+
+
+@bot.message_handler(func=lambda message: message.text == 'Получить прогноз')
+def button_handler(message):
+    text = "Введите ссылку на матч !\nhttps://www.hltv.org/matches"
+    bot.reply_to(message, text=text)
+
+
+@bot.message_handler(func=lambda message: message.text == 'Реф. система')
+def button_handler(message):
+    user = log_in(user_id=message.chat.id)
+    user_info = get_user_info(user.user_id)
+    text = 'Каждый день вы получаете 1 бесплатный прогноз, которым можете воспользоваться в течений одного ' \
+           'дня.\nЗа каждого приглашенного пользователя вы получаете 1 прогноз. '
+    text += "\nНа вашем балансе:\nДоступно {limit}\nИспользованно {counts}\n" \
+            "Всего {max_count}".format(
+        **user_info
+    )
+    bot.reply_to(message, text=text, reply_markup=inline_key_board)
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))  # PROD
+    # app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))  # PROD
     # bot.remove_webhook()
-    # bot.polling()  # DEV
+    bot.polling()  # DEV
