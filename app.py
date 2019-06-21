@@ -1,45 +1,45 @@
-import os   # PROD
+import os
 import re
-
+import connector
+import config
 import telebot
+
 from flask import Flask, request
 from telebot.apihelper import ApiException
 from telebot.types import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
-from connector import User, session
 from utils import send_game
 
-TOKEN = "844180371:AAGzN2Ls-3tuseaN9h_R22l6FAL8ZqPav2I"  # PROD
-# TOKEN = "794766889:AAFvOD3zOdXi-OIYCN0cEq2fm06iZFm13jo"  # DEV
-bot = telebot.TeleBot(TOKEN)
+
 app = Flask(__name__)
+if os.environ.get('env') == "prod":
+    app.config = config.ProductionConfig
+    TOKEN = app.config.TOKEN
+    bot = telebot.TeleBot(TOKEN)
+else:  # os.environ.get('env') == "dev"
+    app.config = config.DevelopmentConfig
+    TOKEN = app.config.TOKEN
+    bot = telebot.TeleBot(TOKEN)
 
-regex = re.compile(
-    r'^https://www\.hltv\.org/matches(?:/?|[/?]\S+)$', re.IGNORECASE)
-
-pattern_chat_id = r'\d{9}'
-menu_items = ['Инструкция', 'Баланс', 'Реф. система', 'Получить прогноз']
-# link_to_bot = 'https://t.me/devrobbot?start=%s'   # DEV
-link_to_bot = 'https://t.me/RobobetsBot?start=%s'   # PROD
 inline_key_board = InlineKeyboardMarkup()
 get_ref_link_button = InlineKeyboardButton("Получить ссылку для приглашения друзей", callback_data='get_link')
 inline_key_board.row(get_ref_link_button)
 
 
 def sign_up(user):
-    user = User(user)
+    user = connector.User(user)
     return user
 
 
 def log_in(user_id):
-    user = session.query(User).get(user_id)
+    user = connector.session.query(connector.User).get(user_id)
     if not user:
         return sign_up(user_id)
     return user
 
 
 def get_user_info(user_id):
-    user = session.query(User).get(user_id)
+    user = connector.session.query(connector.User).get(user_id)
     return user
 
 
@@ -64,10 +64,11 @@ def echo_message(message):
 @bot.message_handler(commands=['start'])
 def handle_start_help(message):
     user = get_user_info(user_id=message.chat.id)
+    menu_items = ['Инструкция', 'Баланс', 'Реф. система', 'Получить прогноз']
     ref_user_id = message.text[7:]
     if not user:
-        user = User(message.from_user)
-        if re.match(pattern=pattern_chat_id, string=ref_user_id):
+        user = connector.User(message.from_user)
+        if re.match(pattern=r'\d{9}', string=ref_user_id):
             ref_user = get_user_info(user_id=ref_user_id)
             bot.send_message(chat_id=ref_user_id, text='Ваш друг перешел по вашей ссылке')
             ref_user.add_ref_count()
@@ -87,19 +88,6 @@ def handle_start_help(message):
     reply_markup.add(*menu_items)
     text = 'Здраствуйте ' + user.first_name
     bot.reply_to(message=message, text=text, reply_markup=reply_markup)
-
-
-@app.route('/' + TOKEN, methods=['POST'])
-def get_message():
-    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
-    return "Hello from Heroku!", 200
-
-
-@app.route("/")
-def set_webhook():
-    bot.remove_webhook()
-    bot.set_webhook(url='https://robobetsbot.herokuapp.com/' + TOKEN)
-    return "Hello from Heroku!", 200
 
 
 @bot.message_handler(func=lambda message: message.text == 'Инструкция')
@@ -125,7 +113,7 @@ def button_handler(message):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'get_link')
 def command_click_inline(call):
-    text = link_to_bot % call.from_user.id
+    text = app.config.LINK_TO_BOT % call.from_user.id
     bot.send_message(call.from_user.id, text=text)
 
 
@@ -149,6 +137,13 @@ def button_handler(message):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))  # PROD
-    # bot.remove_webhook()
-    # bot.polling()  # DEV
+    if os.environ.get('env') == "prod":
+        @app.route('/' + TOKEN, methods=['POST'])
+        def get_message():
+            bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+            return "Hello from Heroku!", 200
+        app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
+        bot.set_webhook(url='https://robobetsbot.herokuapp.com/' + TOKEN)
+    else:
+        bot.remove_webhook()
+        bot.polling()

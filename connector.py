@@ -1,16 +1,19 @@
+import os
+
+from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, create_engine, ARRAY, Table
+import config
 
-DATABASE_URI = 'postgres+psycopg2://cwyzqcibwgfibp:35c8357e58aae1f7f11a8c7d9683f4043c44524f83309af717293fda96292462' \
-               '@ec2-54-221-214-3.compute-1.amazonaws.com:5432/dccefmk7lklpi1'
-db = create_engine(DATABASE_URI)
+if os.environ.get('env') == "prod":
+    db = create_engine(config.ProductionConfig.DATABASE_URI)
+else:  #os.environ.get('env') == "dev"
+    db = create_engine(config.ProductionConfig.DATABASE_URI)
 
 Base = declarative_base()
-Session = sessionmaker(bind=db)
 
-# create a Session
+Session = sessionmaker(bind=db)
 session = Session()
 
 
@@ -52,6 +55,3 @@ class User(Base):
             return True
         else:
             return False
-
-
-Base.metadata.create_all(db)
