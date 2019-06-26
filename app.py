@@ -5,8 +5,7 @@ import math
 from flask import Flask, request
 
 import telebot
-
-from connector import User, session
+  
 from utils import send_game
 
 TOKEN = "844180371:AAGzN2Ls-3tuseaN9h_R22l6FAL8ZqPav2I"
