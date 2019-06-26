@@ -21,14 +21,6 @@ regex = re.compile(
 def echo_message(message):
     text = message.text
     text, score = send_game(link_to_match=text)
-    user_id = message.chat.id
-    user = session.query(User).filter_by(user_id=user_id).all()
-    if score > 1.7 and bool(len(user)):
-        user[0].counts += 1
-    elif not bool(len(user)):
-        user = User(user_id=user_id)
-        session.add(user)
-    session.commit()
     bot.reply_to(message, text)
     # if re.match(regex, text):
     #
@@ -38,11 +30,6 @@ def echo_message(message):
 
 @bot.message_handler(commands=['start', 'help'])
 def handle_start_help(message):
-    user = session.query(User).filter_by(user_id=message.chat.id).all()
-    if not bool(len(user)):
-        user = User(user_id=message.chat.id)
-        session.add(user)
-    session.commit()
     bot.reply_to(message=message, text='Весь анализ делает бот и выдает оценку каждой команды по 20-ти балльной '
                                        'шкале. Чем больше разница, тем больше шанс захода прогноза. У бота есть два '
                                        'исхода:\n1) В проходе уверен на 90%\n2) Возможны трудности с проходом.\nВ '
