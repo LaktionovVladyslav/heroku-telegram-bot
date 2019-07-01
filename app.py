@@ -38,11 +38,12 @@ def sign_up(user):
     return user
 
 
-def log_in(user_id):
-    user = connector.session.query(connector.User).get(user_id)
+def log_in(user):
+    print(user.__dict__)
+    new_user = connector.session.query(connector.User).get(user.id)
     if not user:
-        return sign_up(user_id)
-    return user
+        return sign_up(user)
+    return new_user
 
 
 def get_user_info(user_id):
@@ -52,7 +53,7 @@ def get_user_info(user_id):
 
 @bot.message_handler(regexp=r'^https://www\.hltv\.org/matches(?:/?|[/?]\S+)$')
 def echo_message(message):
-    user = log_in(user_id=message.chat.id)
+    user = log_in(user=message.from_user)
     if user.check():
         text = message.text
         text, score = send_game(link_to_match=text)
@@ -71,7 +72,7 @@ def echo_message(message):
 
 @bot.message_handler(commands=['start'])
 def handle_start_help(message):
-    user = log_in(user_id=message.chat.id)
+    user = log_in(user=message.from_user)
     menu_items = ['Инструкция', 'Баланс', 'Реф. система', 'Получить прогноз']
     ref_user_id = message.text[7:]
     if not user:
@@ -108,7 +109,7 @@ def button_handler(message):
 
 @bot.message_handler(func=lambda message: message.text == 'Баланс')
 def button_handler(message):
-    user = log_in(user_id=message.chat.id)
+    user = log_in(user=message.from_user)
     text = "Ваш баланс: {daily_limit} прогноз(ов)".format(
         daily_limit=user.limit - user.counts,
     )
@@ -123,20 +124,40 @@ def command_click_inline(call):
 
 @bot.message_handler(func=lambda message: message.text == 'Получить прогноз')
 def button_handler(message):
-    log_in(user_id=message.chat.id)
+    user = log_in(user=message.from_user)
     text = "Введите ссылку на матч !\nhttps://www.hltv.org/matches"
     bot.reply_to(message, text=text)
 
 
 @bot.message_handler(func=lambda message: message.text == 'Реф. система')
 def button_handler(message):
-    user = log_in(user_id=message.chat.id)
+    user = log_in(user=message.from_user)
     text = 'Каждый день вы получаете 1 бесплатный прогноз, которым можете воспользоваться в течений одного ' \
            'дня.\nЗа каждого приглашенного пользователя вы получаете 1 прогноз. '
     text += "\nВаш баланс: {daily_limit} прогноз(ов)".format(
         daily_limit=user.limit - user.counts,
     )
     bot.reply_to(message, text=text, reply_markup=inline_key_board)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('get_game_'))
+def command_click_inline(call):
+    game_id = call.data[9:]
+    link_to_match = connector.session.query(connector.Maths).filter_by(math_id=game_id).first().link
+    user = log_in(user=call.from_user)
+    if user.check():
+        text, score = send_game(link_to_match=link_to_match)
+        counts = user.add_count()
+        text += "\nНа сегодня осталось {daily_limit} попыток\nИспользованно {counts}\nЛимит на день {max_count}".format(
+            daily_limit=user.limit - counts,
+            counts=counts,
+            max_count=user.limit
+        )
+        user.rem_count()
+        bot.send_message(call.from_user.id, text)
+    elif user.check() is None:
+        text = 'Чтобы увеличить количество попыток, пригласите друзей'
+        bot.reply_to(call.from_user.id, text=text, reply_markup=inline_key_board)
 
 
 if __name__ == "__main__":

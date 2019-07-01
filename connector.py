@@ -1,6 +1,6 @@
 import os
 
-from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy import Column, Integer, String, create_engine, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -56,5 +56,14 @@ class User(Base):
             return True
         else:
             return False
+
+
+class Maths(Base):
+    __tablename__ = 'maths'
+    math_id = Column(Integer, primary_key=True, unique=True)
+    link = Column(String)
+    winner = Column(String)
+    valid = Column(Boolean)
+
 
 # Base.metadata.create_all(db)
