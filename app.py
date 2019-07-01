@@ -22,7 +22,6 @@ else:  # os.environ.get('env') == "dev"
 if os.environ.get('env') == "prod":
     app = Flask(__name__)
 
-
     @app.route('/' + TOKEN, methods=['POST'])
     def get_message():
         bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
@@ -34,12 +33,11 @@ inline_key_board.row(get_ref_link_button)
 
 
 def sign_up(user):
-    user = connector.User(user)
-    return user
+    new_user = connector.User(user)
+    return new_user
 
 
 def log_in(user):
-    print(user.__dict__)
     new_user = connector.session.query(connector.User).get(user.id)
     if not user:
         return sign_up(user)
@@ -65,7 +63,7 @@ def echo_message(message):
         )
         user.rem_count()
         bot.reply_to(message, text)
-    elif user.check() is None:
+    elif not user.check():
         text = 'Чтобы увеличить количество попыток, пригласите друзей'
         bot.reply_to(message, text=text, reply_markup=inline_key_board)
 
@@ -124,7 +122,7 @@ def command_click_inline(call):
 
 @bot.message_handler(func=lambda message: message.text == 'Получить прогноз')
 def button_handler(message):
-    user = log_in(user=message.from_user)
+    log_in(user=message.from_user)
     text = "Введите ссылку на матч !\nhttps://www.hltv.org/matches"
     bot.reply_to(message, text=text)
 
